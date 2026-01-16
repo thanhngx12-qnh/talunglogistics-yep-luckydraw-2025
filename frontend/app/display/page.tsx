@@ -6,7 +6,10 @@ import { socket } from "@/lib/socket";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import { WinnerCard } from "@/components/WinnerCard";
-import { Play, Square, Trophy, AlertTriangle, RefreshCw, List, MonitorPlay, Volume2, VolumeX, Settings } from "lucide-react";
+import { 
+  Play, Square, Trophy, AlertTriangle, RefreshCw, 
+  List, MonitorPlay, Volume2, VolumeX, Settings, Truck, ChevronRight 
+} from "lucide-react";
 import { useGameAudio } from "@/hooks/useGameAudio";
 import Link from "next/link";
 
@@ -14,9 +17,9 @@ interface Winner { id: string; name: string; department: string; code: string; a
 interface Prize { id: string; name: string; imageUrl: string; quantity: number; remaining?: number; employees: Winner[]; }
 
 const DUMMY_NAMES = [
-  "Nguyễn Văn A", "Trần Thị B", "Lê Văn C", "Phạm Thị D", 
-  "Hoàng Văn E", "Vũ Thị F", "Đặng Văn G", "Bùi Thị H",
-  "Đang quay...", "Hồi hộp quá...", "Ai đây???"
+  "BÙI MINH QUANG", "TRẦN VĂN THÀNH", "LÊ THỊ MAI", "NGUYỄN ANH TUẤN", 
+  "VẬN TẢI XUYÊN BIÊN", "LOGISTICS 2025", "HÀNH TRÌNH VƯƠN XA", "TÀ LÙNG BORDER",
+  "ĐANG TÌM CHỦ NHÂN...", "HỒI HỘP QUÁ...", "AI SẼ MAY MẮN???"
 ];
 
 export default function DisplayPage() {
@@ -24,7 +27,7 @@ export default function DisplayPage() {
   const [status, setStatus] = useState<"IDLE" | "SPINNING" | "COMPLETED">("IDLE");
   const [prizeImage, setPrizeImage] = useState<string | null>(null);
   const [winners, setWinners] = useState<Winner[]>([]);
-  const [runningName, setRunningName] = useState("SẴN DÀNG");
+  const [runningName, setRunningName] = useState("SẴN SÀNG");
   
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [selectedPrizeId, setSelectedPrizeId] = useState<string>("");
@@ -33,9 +36,7 @@ export default function DisplayPage() {
   const spinInterval = useRef<NodeJS.Timeout | null>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3003";
 
-  // --- TÍCH HỢP AUDIO MỚI ---
   const { toggleMute, isMuted, playSpin, stopSpin, playWin } = useGameAudio();
-
 
   const loadPrizes = useCallback(() => {
     fetch(`${API_URL}/prizes`)
@@ -59,7 +60,7 @@ export default function DisplayPage() {
       setPrizeImage(data.imageUrl);
       setStatus("IDLE");
       setWinners([]);
-      setRunningName("SẴN DÀNG");
+      setRunningName("SẴN SÀNG");
       setErrorMsg(null);
       setViewMode("SPIN");
     });
@@ -69,8 +70,7 @@ export default function DisplayPage() {
       setWinners([]);
       setErrorMsg(null);
       setViewMode("SPIN");
-      
-      playSpin(); // BẮT ĐẦU PHÁT NHẠC SPIN
+      playSpin();
       
       if (spinInterval.current) clearInterval(spinInterval.current);
       spinInterval.current = setInterval(() => {
@@ -80,19 +80,17 @@ export default function DisplayPage() {
 
     socket.on("spin_completed", (data) => {
       if (spinInterval.current) clearInterval(spinInterval.current);
-      
-      stopSpin(); // DỪNG NHẠC SPIN
+      stopSpin();
       setStatus("COMPLETED"); 
       setWinners(data);
-      playWin(); // PHÁT NHẠC WIN
+      playWin();
       fireConfetti();
       loadPrizes(); 
     });
 
     socket.on("spin_error", (data: { message: string }) => {
       if (spinInterval.current) clearInterval(spinInterval.current);
-      
-      stopSpin(); // DỪNG NHẠC SPIN KHI CÓ LỖI
+      stopSpin();
       setStatus("IDLE");
       setRunningName("CHỜ BAN TỔ CHỨC...");
       const msg = Array.isArray(data.message) ? data.message.join(", ") : data.message;
@@ -107,7 +105,7 @@ export default function DisplayPage() {
       socket.off("spin_error");
       if (spinInterval.current) clearInterval(spinInterval.current);
     };
-  }, [loadPrizes, playSpin, stopSpin, playWin]); // Thêm dependencies
+  }, [loadPrizes, playSpin, stopSpin, playWin]);
 
   const handleSelectPrize = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const prizeId = e.target.value;
@@ -120,21 +118,19 @@ export default function DisplayPage() {
 
   const handleStart = () => {
     if (!selectedPrizeId) return alert("Chưa chọn giải thưởng!");
-    // Lệnh socket emit được gọi trực tiếp từ user interaction
     socket.emit("admin_start_spin", { prizeId: selectedPrizeId });
   };
 
   const handleStop = () => {
-    // Lệnh socket emit được gọi trực tiếp từ user interaction
     socket.emit("admin_stop_spin", { prizeId: selectedPrizeId });
   };
 
   const fireConfetti = () => {
-    const duration = 3000;
+    const duration = 5000;
     const end = Date.now() + duration;
     const frame = () => {
-      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#FFD700', '#FFA500', '#FFFFFF'] });
-      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#FFD700', '#FFA500', '#FFFFFF'] });
+      confetti({ particleCount: 7, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#FF0000', '#FFD700', '#FFFFFF'] });
+      confetti({ particleCount: 7, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#FF0000', '#FFD700', '#FFFFFF'] });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     frame();
@@ -146,52 +142,75 @@ export default function DisplayPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 flex flex-col overflow-hidden relative font-sans">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900 via-slate-950 to-black opacity-80 z-0"></div>
+    <main className="min-h-screen bg-truck-pattern bg-fixed bg-cover flex flex-col overflow-hidden relative font-sans">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#003366] via-[#001F3F] to-black opacity-95 z-0"></div>
 
-      <div className="z-10 flex-1 flex flex-col items-center p-4 pb-32 w-full max-w-7xl mx-auto">
+      {/* --- MAIN DISPLAY AREA --- */}
+      <div className="z-10 flex-1 flex flex-col items-center justify-center p-4 pb-32">
         
-        <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-center mb-6 mt-4">
-          <h1 className="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 drop-shadow-lg tracking-wider">
-            {viewMode === 'SUMMARY' ? 'BẢNG VINH DANH' : 'YEAR END PARTY'}
+        {/* HEADER */}
+        <motion.div 
+            animate={status === "COMPLETED" ? { scale: 0.8, y: -20 } : { scale: 1, y: 0 }}
+            className="text-center mb-8 relative transition-all duration-700"
+        >
+          <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter uppercase leading-none mb-2">
+            <span className="text-white">YEAR END</span>{" "}
+            <span className="bg-gradient-to-r from-[#FFD700] via-white to-[#FFD700] bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,215,0,0.5)]">PARTY</span>
           </h1>
-          <p className="text-blue-300 text-lg md:text-xl mt-2 tracking-widest uppercase">Lucky Draw 2024</p>
+          <div className="flex items-center justify-center gap-4 text-[#FFD700]">
+            <p className="text-lg md:text-2xl font-bold tracking-[0.5em] uppercase opacity-90">Lucky Draw 2025</p>
+          </div>
         </motion.div>
 
+        {/* ERROR POPUP */}
         <AnimatePresence>
           {errorMsg && (
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute top-24 bg-red-600/90 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 z-50 backdrop-blur-sm">
-              <AlertTriangle className="animate-pulse" />
-              <span className="font-bold uppercase tracking-wide">{errorMsg}</span>
+            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute top-32 bg-[#FF0000] text-white px-8 py-4 rounded-2xl shadow-2xl z-50 backdrop-blur-md border border-white/20">
+              <span className="font-black uppercase tracking-widest text-sm">{errorMsg}</span>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* --- VIEW 1: SPIN MODE (QUAY SỐ) --- */}
+        {/* VIEW: SPIN MODE */}
         {viewMode === "SPIN" && (
           <div className="relative w-full flex flex-col items-center justify-center flex-1">
             <AnimatePresence mode="wait">
               {status !== "COMPLETED" && (
-                <motion.div key="spinning-area" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.5, filter: "blur(10px)" }} className="flex flex-col items-center">
-                  <div className="w-64 h-64 md:w-80 md:h-80 bg-white/5 rounded-full flex items-center justify-center border-4 border-yellow-500/50 shadow-[0_0_50px_rgba(234,179,8,0.3)] mb-8 overflow-hidden backdrop-blur-sm">
-                    {prizeImage ? <img src={prizeImage} alt="Prize" className="w-full h-full object-contain p-6 hover:scale-110 transition-transform duration-500" /> : <div className="text-6xl animate-bounce">🎁</div>}
+                <motion.div key="spinning-area" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.5 }} className="flex flex-col items-center">
+                  <div className="w-64 h-64 md:w-80 md:h-80 bg-white/5 rounded-full flex items-center justify-center border-4 border-[#FF0000] shadow-[0_0_60px_rgba(255,0,0,0.3)] mb-12 relative overflow-hidden backdrop-blur-sm">
+                    {prizeImage ? <img src={prizeImage} alt="Prize" className="w-full h-full object-contain p-10 drop-shadow-2xl" /> : <Trophy size={100} className="text-white/10" />}
                   </div>
                   {status === "SPINNING" && (
-                    <div className="bg-black/60 backdrop-blur-md px-16 py-8 rounded-3xl border border-yellow-500/50 shadow-2xl">
-                      <h2 className="text-5xl md:text-6xl font-mono text-yellow-400 font-bold animate-pulse tracking-wider">{runningName}</h2>
+                    <div className="bg-white/5 backdrop-blur-2xl px-16 py-8 rounded-[2.5rem] border border-white/10 shadow-2xl">
+                      <h2 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-[#FFFFFF] via-[#FF0000] to-[#FFD700] bg-clip-text text-transparent italic animate-pulse tracking-tighter">
+                        {runningName}
+                      </h2>
                     </div>
                   )}
                 </motion.div>
               )}
 
+              {/* VIEW: WINNER REVEAL - CĂN GIỮA VÀ LÀM LỚN */}
               {status === "COMPLETED" && (
-                <motion.div key="winners-area" initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="w-full flex flex-col items-center">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center mb-8">
-                    {winners.map((employee) => <WinnerCard key={employee.id} employee={employee} apiBaseUrl={API_URL} />)}
+                <motion.div 
+                    key="winners-area" 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    className="w-full flex flex-col items-center justify-center"
+                >
+                  <div className={`flex flex-wrap justify-center items-center gap-12 w-full max-w-7xl px-4`}>
+                    {winners.map((employee) => (
+                      <WinnerCard key={employee.id} employee={employee} apiBaseUrl={API_URL} />
+                    ))}
                   </div>
-                  <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0, transition: { delay: 0.5 } }} className="text-center">
-                    <h2 className="text-5xl text-white font-bold mb-2 drop-shadow-md">XIN CHÚC MỪNG!</h2>
-                    <p className="text-yellow-400 text-2xl font-light">Đã trở thành chủ nhân giải thưởng</p>
+                  
+                  <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0, transition: { delay: 0.8 } }} className="text-center mt-12">
+                    <h2 className="text-5xl md:text-7xl font-black text-white italic tracking-tighter drop-shadow-2xl uppercase">
+                      XIN CHÚC <span className="text-[#FFD700]">MỪNG!</span>
+                    </h2>
+                    <p className="text-[#E0E0E0] text-xl md:text-2xl font-bold tracking-[0.3em] uppercase opacity-70 mt-4 underline decoration-[#FF0000] underline-offset-8">
+                      CHỦ NHÂN GIẢI THƯỞNG
+                    </p>
                   </motion.div>
                 </motion.div>
               )}
@@ -199,28 +218,25 @@ export default function DisplayPage() {
           </div>
         )}
 
-        {/* --- VIEW 2: SUMMARY MODE (TỔNG KẾT) --- */}
+        {/* VIEW: SUMMARY MODE */}
         {viewMode === "SUMMARY" && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} 
-            className="w-full h-full overflow-y-auto pr-2 pb-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full h-full overflow-y-auto pr-4 pb-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 custom-scrollbar">
             {prizes.map((prize) => (
               prize.employees.length > 0 && (
-                <div key={prize.id} className="bg-gray-900/60 border border-yellow-500/30 rounded-xl overflow-hidden backdrop-blur-sm">
-                  <div className="bg-yellow-900/40 p-3 border-b border-yellow-500/30 flex items-center justify-between">
-                    <h3 className="text-yellow-400 font-bold uppercase truncate flex-1">{prize.name}</h3>
-                    <span className="text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full font-bold">{prize.employees.length}</span>
+                <div key={prize.id} className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden backdrop-blur-xl shadow-2xl">
+                  <div className="bg-gradient-to-r from-[#003366] to-[#001F3F] p-5 border-b border-[#FF0000]/30 flex items-center justify-between">
+                    <h3 className="text-[#FFD700] font-black uppercase italic truncate flex-1 tracking-tight">{prize.name}</h3>
+                    <span className="text-sm bg-[#FF0000] text-white px-3 py-1 rounded-full font-black shadow-lg">{prize.employees.length}</span>
                   </div>
-                  <div className="p-3 max-h-60 overflow-y-auto space-y-2 custom-scrollbar">
+                  <div className="p-5 max-h-80 overflow-y-auto space-y-3 custom-scrollbar">
                     {prize.employees.map((emp) => (
-                      <div key={emp.id} className="flex items-center gap-3 bg-black/40 p-2 rounded-lg">
-                         <div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden shrink-0">
-                           <img src={emp.avatarUrl ? (emp.avatarUrl.startsWith('http') ? emp.avatarUrl : `${API_URL}/public/${emp.avatarUrl}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=random`} className="w-full h-full object-cover" />
+                      <div key={emp.id} className="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 hover:border-[#FFD700]/30 transition-colors">
+                         <div className="w-12 h-12 rounded-full border-2 border-[#FFD700] overflow-hidden shrink-0">
+                           <img src={emp.avatarUrl ? (emp.avatarUrl.startsWith('http') ? emp.avatarUrl : `${API_URL}/public/${emp.avatarUrl}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=003366&color=fff`} className="w-full h-full object-cover" />
                          </div>
                          <div className="min-w-0">
-                           <p className="text-white text-sm font-semibold truncate">{emp.name}</p>
-                           <p className="text-gray-400 text-xs truncate">{emp.department}</p>
+                           <p className="text-white font-bold uppercase truncate tracking-tighter">{emp.name}</p>
+                           <p className="text-white/40 text-[10px] uppercase font-black">{emp.department}</p>
                          </div>
                       </div>
                     ))}
@@ -230,90 +246,44 @@ export default function DisplayPage() {
             ))}
           </motion.div>
         )}
-
       </div>
 
-      {/* --- CONTROL BAR --- */}
-      <div className="z-50 fixed bottom-0 left-0 right-0 h-24 bg-gray-900/90 backdrop-blur-xl border-t border-gray-700 flex items-center justify-between px-8 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        
-        {/* Left: Prize Selector / Audio Mute / Admin Button */}
+      {/* --- BRANDED CONTROL BAR --- */}
+      <div className="z-50 fixed bottom-0 left-0 right-0 h-24 bg-[#001F3F]/80 backdrop-blur-3xl border-t border-white/10 flex items-center justify-between px-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
         <div className="flex items-center gap-4">
            {viewMode === "SPIN" && (
-             <>
-                <div className="flex items-center gap-2 text-yellow-500 font-bold uppercase tracking-wider hidden md:flex">
-                  <Trophy className="w-6 h-6" />
-                  <span>Giải:</span>
+             <div className="flex items-center gap-3 bg-white/5 p-1 rounded-2xl border border-white/10">
+                <div className="bg-[#FF0000] p-3 rounded-xl shadow-lg">
+                  <Trophy className="w-5 h-5 text-white" />
                 </div>
-                <select 
-                  className="bg-gray-800 text-white border border-gray-600 rounded-lg px-4 py-3 text-lg focus:ring-2 focus:ring-yellow-500 outline-none w-48 md:w-auto"
-                  value={selectedPrizeId}
-                  onChange={handleSelectPrize}
-                  disabled={status === "SPINNING"}
-                >
-                  {prizes.map((p) => (
-                    <option key={p.id} value={p.id} className={getDisplayQuantity(p) === 0 ? "text-gray-500 bg-gray-900" : ""}>
-                      {p.name} (Còn: {getDisplayQuantity(p)})
-                    </option>
-                  ))}
+                <select className="bg-transparent text-white font-black uppercase text-sm focus:ring-0 outline-none pr-8 cursor-pointer min-w-[180px]" value={selectedPrizeId} onChange={handleSelectPrize} disabled={status === "SPINNING"}>
+                  {prizes.map((p) => ( <option key={p.id} value={p.id} className="bg-[#001F3F] text-white"> {p.name} ({getDisplayQuantity(p)}) </option> ))}
                 </select>
-             </>
+             </div>
            )}
-           
-           {/* Nút Mute / Unmute */}
-           <button 
-             onClick={toggleMute} 
-             className="p-3 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors ml-4"
-             title={isMuted ? "Bật âm thanh" : "Tắt âm thanh"}
-           >
-             {isMuted ? <VolumeX className="w-5 h-5 text-red-400" /> : <Volume2 className="w-5 h-5" />}
-           </button>
-           
-           {/* Nút Mở Admin Page */}
-           <Link
-             href="/admin"
-             className="p-3 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors flex items-center justify-center"
-             title="Mở Trang Quản Trị"
-           >
-             <Settings className="w-5 h-5" />
-           </Link>
+           <button onClick={toggleMute} className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white transition-all"> {isMuted ? <VolumeX size={20} className="text-[#FF0000]" /> : <Volume2 size={20} />} </button>
+           <Link href="/admin" className="p-4 rounded-2xl bg-white/5 hover:bg-[#FF0000] text-white transition-all group"> <Settings size={20} className="group-hover:rotate-90 transition-transform" /> </Link>
         </div>
 
-        {/* Center: Main Action Button */}
-        <div className="absolute left-1/2 -translate-x-1/2 -top-10">
+        <div className="absolute left-1/2 -translate-x-1/2 -top-12">
           {viewMode === "SPIN" ? (
              status !== "SPINNING" ? (
-              <button onClick={handleStart} className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.6)] hover:scale-105 active:scale-95 transition-all border-4 border-gray-900 group">
-                <Play className="w-10 h-10 text-white ml-1 group-hover:animate-pulse" fill="white" />
+              <button onClick={handleStart} className="w-28 h-28 bg-gradient-to-br from-[#0052A4] to-[#003366] rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(0,82,164,0.6)] hover:scale-110 active:scale-95 transition-all border-8 border-[#001F3F] group overflow-hidden">
+                <Play className="w-12 h-12 text-white ml-2" fill="white" />
               </button>
             ) : (
-              <button onClick={handleStop} className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.6)] hover:scale-105 active:scale-95 transition-all border-4 border-gray-900 animate-pulse">
-                <Square className="w-10 h-10 text-white" fill="white" />
+              <button onClick={handleStop} className="w-28 h-28 bg-gradient-to-br from-[#DC2626] to-[#FF0000] rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(255,0,0,0.6)] hover:scale-110 active:scale-95 transition-all border-8 border-[#001F3F] animate-pulse">
+                <Square className="w-12 h-12 text-white" fill="white" />
               </button>
             )
           ) : (
-            // Nút quay về khi đang ở chế độ Tổng kết
-            <button onClick={() => setViewMode("SPIN")} className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center border-4 border-gray-900 hover:bg-gray-600 transition-all shadow-lg">
-               <MonitorPlay className="w-10 h-10 text-white" />
-            </button>
+            <button onClick={() => setViewMode("SPIN")} className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center border-4 border-white/20 hover:bg-[#FF0000] transition-all"> <MonitorPlay className="w-10 h-10 text-white" /> </button>
           )}
         </div>
 
-        {/* Right: Toggle Mode & Refresh */}
-        <div className="flex items-center gap-3">
-          <button 
-             onClick={() => {
-                loadPrizes(); 
-                setViewMode(prev => prev === "SPIN" ? "SUMMARY" : "SPIN");
-             }}
-             className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all ${viewMode === "SUMMARY" ? "bg-yellow-500 text-black" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
-          >
-            <List className="w-5 h-5" />
-            <span className="hidden md:inline">{viewMode === "SPIN" ? "Tổng Kết" : "Quay Số"}</span>
-          </button>
-
-          <button onClick={() => window.location.reload()} className="p-3 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors">
-            <RefreshCw className="w-5 h-5" />
-          </button>
+        <div className="flex items-center gap-4">
+          <button onClick={() => { loadPrizes(); setViewMode(prev => prev === "SPIN" ? "SUMMARY" : "SPIN"); }} className={`px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 transition-all border ${ viewMode === "SUMMARY" ? "bg-[#FF0000] text-white border-transparent shadow-[0_0_20px_rgba(255,0,0,0.4)]" : "bg-white/5 text-white/50 border-white/10 hover:border-[#FFD700]" }`}> <List size={16} /> {viewMode === "SPIN" ? "Bảng Vinh Danh" : "Về Quay Số"} </button>
+          <button onClick={() => window.location.reload()} className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all"> <RefreshCw size={20} /> </button>
         </div>
       </div>
     </main>

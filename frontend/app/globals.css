@@ -3,17 +3,49 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --primary-blue: #003366;
+  --dark-blue: #001F3F;
+  --accent-red: #FF0000;
+  --gold-accent: #FFD700;
+  --text-primary: #FFFFFF;
+  --text-secondary: #E0E0E0;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #003366 0%, #001F3F 100%);
+  min-height: 100 screen;
+  font-family: 'Inter', sans-serif;
+}
+
+@layer utilities {
+  .bg-glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+  .text-gradient-gold {
+    @apply bg-gradient-to-b from-[#FFD700] via-[#FDB931] to-[#9E7E38] bg-clip-text text-transparent;
+  }
+  .text-gradient-red-gold {
+    @apply bg-gradient-to-r from-[#FF0000] to-[#FFD700] bg-clip-text text-transparent;
+  }
+  .btn-gradient-red {
+    @apply bg-gradient-to-r from-[#DC2626] to-[#FF0000] hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] transition-all duration-300;
+  }
+  .btn-gradient-blue {
+    @apply bg-gradient-to-r from-[#003366] to-[#0052A4] hover:shadow-[0_0_20px_rgba(0,51,102,0.4)] transition-all duration-300;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/20 rounded-full;
+  }
+}
+
+/* Hiệu ứng xe tải mờ cho theme Logistics */
+.bg-truck-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54 38h-4v-8c0-1.1-.9-2-2-2h-8v-6c0-1.1-.9-2-2-2H10c-1.1 0-2 .9-2 2v18H6c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h4c0 2.2 1.8 4 4 4s4-1.8 4-4h20c0 2.2 1.8 4 4 4s4-1.8 4-4h6c1.1 0 2-.9 2-2v-4c0-1.1-.9-2-2-2zM14 48c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm30 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
 }
