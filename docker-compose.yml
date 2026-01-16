@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: yep_db
+    platform: linux/amd64
+    restart: always
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: yep_luckydraw
+    networks:
+      - yep_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: yep_backend
+    platform: linux/amd64
+    restart: always
+    ports:
+      - "3003:3001"
+    volumes:
+      # FIX: Cấp thêm quyền 'ro' (Read-Only) để đảm bảo container có thể đọc files
+      - ./public:/app/public:ro 
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: admin
+      DB_PASSWORD: admin
+      DB_DATABASE: yep_luckydraw
+      PORT: 3001
+    depends_on:
+      - postgres
+    networks:
+      - yep_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: yep_frontend
+    platform: linux/amd64
+    restart: always
+    ports:
+      - "3002:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3003
+    networks:
+      - yep_network
+
+networks:
+  yep_network:
+    driver: bridge
